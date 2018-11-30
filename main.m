@@ -1,10 +1,8 @@
-%%
+% %%
 aviobj=VideoWriter('video.avi','Uncompressed AVI');
-aviobj.FrameRate=5;
-open(aviobj)
- for i=1:10:n
+aviobj.FrameRate=5;open(aviobj)
+for i=1:10:n
     %On récupère chaque frame de la vidéo
-
     video = read(obj,i);
     %On récupère les dimensions de cette frame (hauteur et largeur)
     %[hautVid,largVid]=size(video);
@@ -114,16 +112,30 @@ open(aviobj)
       
     
 %     %filtrage
-    y=0.299*M2(:,:,1)+0.587*M2(:,:,2)+0.114*M2(:,:,3); 
-    Cb1=0.564*(M2(:,:,3)-y)+128; 
-    M3=double(Cb1>128);
-    %figure('Name','M3'), imshow(M3); % vérification filtre
+    R = M2(:,:,1);
+    G = M2(:,:,2);
+    B = M2(:,:,3) ;
+    
+    SeuilG = 125;
+    seuilB = 140;
+    mask = find(G>SeuilG & B>seuilB);
+    mask2 = find(G<SeuilG & B<seuilB);
+    R(mask) = 1 ;
+    G(mask) = 1 ;
+    B(mask) = 1;
+    R(mask2) = 0 ;
+    G(mask2) = 0 ;
+    B(mask2) = 0;
+    M3 = cat(3,R,G,B);
+    
+%     V = max(R,max(G,B));
+%     S = ( V - min(R,min(G,B)) )./ V;
+%     H = lumiere(R,G,B,V,hautM,largM);   
+%     M3 = double(V>124);
+%     figure('Name','V'),imshow(V),
+%     impixelinfo;
+%     figure('Name','M3'),imshow(M5),
 
-%     Cb1 = double(M2(:,:,2)<150);
-%     Cb2 = double(M2(:,:,3)<150);
-%     figure('Name','Cb1'), imshow(Cb1);
-%     figure('Name','Cb2'), imshow(Cb2);
-%%
     % création du masque
 %     mask = zeros(hautVid,largVid);
 %     for x=1:length(X3)
@@ -158,6 +170,6 @@ open(aviobj)
     
     video3=cat(3,video3R,video3G,video3B);
     writeVideo(aviobj, video3);
-%     figure('Name','video3'),imshow(video3);
+
  end
  close(aviobj);
