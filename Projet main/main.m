@@ -1,7 +1,8 @@
 % %%
-aviobj=VideoWriter('video.avi','Uncompressed AVI');
-aviobj.FrameRate=5;open(aviobj)
-for i=1:10:n
+ aviobj=VideoWriter('video.avi','Uncompressed AVI');
+ aviobj.FrameRate=24;open(aviobj)
+ for i=1:10:n
+
     %On récupère chaque frame de la vidéo
     video = read(obj,i);
     %On récupère les dimensions de cette frame (hauteur et largeur)
@@ -50,32 +51,25 @@ for i=1:10:n
 
     %image finale
     video2 = projection(image,video,X3,Y3,X4,Y4);
-%%
-
-
-
-    % détection main
+ % détection main
     
-    %zone de la main
-    
+    %Zone de la main
     coinZHG = [coinVidHG(1)+round(3/4*(coinVidHD(1)-coinVidHG(1))),coinVidHD(2)+round(1/4*(coinVidHG(2)-coinVidHD(2)))];
     coinZHD = coinVidHD;
     coinZBG = [coinVidBG(1)+round(3/4*(coinVidBD(1)-coinVidBG(1))),coinVidBD(2)+round(1/4*(coinVidBG(2)-coinVidBD(2)))];
     coinZBD = coinVidBD;
     
-    % création M
+    %Création de N
     largM=360;
     hautM=1080;
-    M = ones(hautM,largM);
+    N = uint8(ones(hautM,largM,3));
     
     %Stockage des coordonnées des 4 coins de M
     coinMHG = [1,1];
     coinMHD = [largM,1];
     coinMBG = [1,hautM];
     coinMBD = [largM,hautM];
-    
-    %Taille de la zone
-    
+
     %Homographie de la zone vers M
     matH2 = homography(coinZHG,coinZHD,coinZBG,coinZBD,coinMHG,coinMHD,coinMBG,coinMBD);
     
@@ -85,80 +79,20 @@ for i=1:10:n
     %Correspondances entre les pixels de la zone et de M
     [X7,Y7,X8,Y8]=position(X5,Y5,X6,Y6,hautM,largM);
     
-    % test X7Y7
-%     mask2 = zeros(hautVid,largVid);
-%     for x=1:length(X7)
-%         mask2(Y7(x),X7(x))=1;
-%     end
-%     figure, imshow(mask2);
-
-    %test X8Y8
-%     mask3 = zeros(hautM,largM);
-%     for x=1:length(X8)
-%         mask3(Y8(x),X8(x))=1;
-%     end
-%     figure('Name','mask 3'), imshow(mask3);
-    
     %Projection des pixels de la zone dans M2
-    videoR=video(:,:,1);
-    videoG=video(:,:,2);
-	videoB=video(:,:,3);
-    
-    N = uint8(ones(hautM,largM,3));
-%     figure('Name','N'), imshow(N(:,:,1));
     M2 = projection(video,N,X8,Y8,X7,Y7);
-%     figure('Name','M2'), imshow(M2);
-%       
-      
+   
+    %Filtrage
+    M3 = filtrageMain(M2);
     
-%     %filtrage
-    R = M2(:,:,1);
-    G = M2(:,:,2);
-    B = M2(:,:,3) ;
-    
-    SeuilG = 125;
-    seuilB = 140;
-    mask = find(G>SeuilG & B>seuilB);
-    mask2 = find(G<SeuilG & B<seuilB);
-    R(mask) = 1 ;
-    G(mask) = 1 ;
-    B(mask) = 1;
-    R(mask2) = 0 ;
-    G(mask2) = 0 ;
-    B(mask2) = 0;
-    M3 = cat(3,R,G,B);
-    
-%     V = max(R,max(G,B));
-%     S = ( V - min(R,min(G,B)) )./ V;
-%     H = lumiere(R,G,B,V,hautM,largM);   
-%     M3 = double(V>124);
-%     figure('Name','V'),imshow(V),
-%     impixelinfo;
-%     figure('Name','M3'),imshow(M5),
-
-    % création du masque
-%     mask = zeros(hautVid,largVid);
-%     for x=1:length(X3)
-%         mask(Y3(x),X3(x))=1;
-%     end
-%     figure('Name','mask'), imshow(mask);%vérification masque
-    
-    %Projection du masque sur la vidéo
-    %vérification masque M projeté
-%     mask4 = zeros(hautVid,largVid);
-%     for x=1:length(X7)
-%         if M3(Y8(x),X8(x))==1
-%            mask4(Y7(x),X7(x))=1;
-%         end
-%     end
-%     figure('Name','mask4'), imshow(mask4);
-            
+    %Application sur la vidéo
     video3R=video2(:,:,1);
     video3G=video2(:,:,2);
 	video3B=video2(:,:,3);
     vR=video(:,:,1);
     vG=video(:,:,2);
 	vB=video(:,:,3);
+    
     for x=1:length(X7)
         if M3(Y8(x),X8(x))==0
         video3R(Y7(x),X7(x))=vR(Y7(x),X7(x));
@@ -168,7 +102,8 @@ for i=1:10:n
     end
     
     
-    video3=cat(3,video3R,video3G,video3B);
+    %video3=cat(3,video3R,video3G,video3B);
+    video3 = projection(M2,video,X7,Y7,X8,Y8);
     writeVideo(aviobj, video3);
 
  end
