@@ -1,4 +1,3 @@
-%%
 clear all
 close all
 feuille = 'feuille.mp4';
@@ -6,7 +5,7 @@ feuilleReader = VideoReader(feuille);
 [historiqueAngles,n] = gauss(feuilleReader);
 
 
-%%
+
 dessinAnime = VideoReader('Chien.mp4');
 aviobj=VideoWriter('video.avi','Motion JPEG AVI');
 dessinAnime = VideoReader('Chien.mp4');

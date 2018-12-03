@@ -1,4 +1,4 @@
-function [M] = filtrageMain(M2)
+    function [M] = filtrageMain(M2)
      R = M2(:,:,1);
      G = M2(:,:,2);
      B = M2(:,:,3);
