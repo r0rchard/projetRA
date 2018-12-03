@@ -1,6 +1,7 @@
 function [video] = projection(image,video,X1,Y1,X2,Y2)
-    %à partir de l'image, de la vidéo des positions de départ, et des positions "homographiées"
-    %crée la projection de l'image
+    %à partir de l'image, de la vidéo, des positions des pixels de la vidéo, 
+    %et des positions des pixels projetés, crée la projection de l'image
+    %sur la vidéo.
 
     %division chaque matrice
     videoR=video(:,:,1);

@@ -1,6 +1,6 @@
 function [X1,Y1,X2,Y2] = estimation(largVid,hautVid,matH)
-    %à partir des dimensions de la vidéo, et de l'homogtaphie, 
-    %projette les coordonées de chaque pixel sur l'image
+    %à partir des dimensions de la vidéo, et de l'homographie, 
+    %projette les coordonées de chaque pixel sur l'image.
 
     %Création d'une grille de dimension égale à celles de la frame de la vidéo
     [A,B]=meshgrid(1:largVid,1:hautVid);
