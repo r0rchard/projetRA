@@ -1,19 +1,25 @@
 clear all
 close all
-feuille = 'feuille.mp4';
+
+feuille = 'feuille.mp4'; %vidéo fournie pour le sujet
 feuilleReader = VideoReader(feuille);
-[historiqueAngles,n] = gauss(feuilleReader);
 
+%historiqueAngles stock les 4 coins de la feuille
+%on stock le nombre d'images de la vidéo
+[historiqueAngles,n] = gauss(feuilleReader); 
 
-
+%dessinAnime stock la vidéo à projeter sur l'image
 dessinAnime = VideoReader('Chien.mp4');
+
+%Initialisation et ouverture du rédacteur de vidéo
 aviobj=VideoWriter('video.avi','Motion JPEG AVI');
-dessinAnime = VideoReader('Chien.mp4');
 aviobj.FrameRate=24;
 open(aviobj);
- for i=1:n
-    %On récupère chaque frame de la vidéo
-    video = read(feuilleReader,i);
+
+%On traite la vidéo image par image
+for i=1:n
+    video = read(feuilleReader,i); %On lit un frame de la vidéo
+    
     %On récupère les dimensions de cette frame (hauteur et largeur)
     hautVid=size(video,1);
     largVid=size(video,2);
@@ -31,30 +37,30 @@ open(aviobj);
    
 
 %-------
+    %l'image à projeté est la i_ème image de la vidéo
+    image  = read(dessinAnime,i); 
     
-    %%image = imread('Clifford.jpg');
-    image  = read(dessinAnime,i);
     %On récupère les dimensions de l'image
     hautImg=size(image,1);
     largImg=size(image,2);
+    
     %Stockage des coordonnées des 4 coins de l'image
     coinImgHG = [1,1];
     coinImgHD = [largImg,1];
     coinImgBG = [1,hautImg];
     coinImgBD = [largImg,hautImg];
-    
-    
-    %Résolution de l'équation pour retrouver Hp
-    
-    %Calcul de l'homographie entre deux plans à partir de 8 points
+
+    %Calcul de l'homographie entre les deux images à partir de 8 points
     matH = homography(coinVidHG,coinVidHD,coinVidBG,coinVidBD,coinImgHG,coinImgHD,coinImgBG,coinImgBD);
     
     %coordonées des points projetés sur l'image
+    %X1,Y1 : coordonnées des pixels de la vidéo
+    %X2,Y2 : coordonnées des pixels projetés
     [X1,Y1,X2,Y2] = estimation(largVid,hautVid,matH);
     
     %coordonées finales
-    %X3,Y3 : coordonées des points de la vidéo
-    %X4,Y4 : coordonées des points de l'image
+    %X3,Y3 : coordonées des pixels de la vidéo devant être modifiés
+    %X4,Y4 : coordonées des points de l'image correspondant
     [X3,Y3,X4,Y4]=position(X1,Y1,X2,Y2,hautImg,largImg);
 
     %image finale
@@ -63,20 +69,24 @@ open(aviobj);
  % détection main
     
     %Zone de la main
+    %première zone
+    %elle prend 1/4 de la feuille
     coinZHG2 = [coinVidHG(1)+round(3/4*(coinVidHD(1)-coinVidHG(1))),coinVidHD(2)+round(1/4*(coinVidHG(2)-coinVidHD(2)))];
     coinZHD2 = coinVidHD;
     coinZBG2 = [coinVidBG(1)+round(3/4*(coinVidBD(1)-coinVidBG(1))),coinVidBD(2)+round(1/4*(coinVidBG(2)-coinVidBD(2)))];
     coinZBD2 = coinVidBD;
     
+    %deuxième zone
+    %elle prend la motié de la première zone
     coinZHD = [coinVidHD(1)+round(1/6*(coinVidBD(1)-coinVidHD(1))),coinVidBD(2)+round(5/6*(coinVidHD(2)-coinVidBD(2)))];
     coinZBD = [coinVidHD(1)+round(4/6*(coinVidBD(1)-coinVidHD(1))),coinVidBD(2)+round(2/6*(coinVidHD(2)-coinVidBD(2)))];
     coinZHG = [coinZHG2(1)+round(1/6*(coinZBG2(1)-coinZHG2(1))),coinZBG2(2)+round(5/6*(coinZHG2(2)-coinZBG2(2)))];
     coinZBG = [coinZHG2(1)+round(4/6*(coinZBG2(1)-coinZHG2(1))),coinZBG2(2)+round(2/6*(coinZHG2(2)-coinZBG2(2)))];
-    %Création de N
+    
+    %Création de M
     largM=largImg/6;
     hautM=hautImg/6;
-    N = uint8(ones(hautM,largM,3));
-    
+    M = uint8(ones(hautM,largM,3));
 
     %Stockage des coordonnées des 4 coins de M
     coinMHG = [1,1];
@@ -87,18 +97,22 @@ open(aviobj);
     %Homographie de la zone vers M
     matH2 = homography(coinZHG,coinZHD,coinZBG,coinZBD,coinMHG,coinMHD,coinMBG,coinMBD);
     
-    %Projecion des pixels de la vidéo sur M
+    %coordonées des points projetés sur M
+    %X5,Y5 : coordonnées des pixels de la vidéo
+    %X6,Y6 : coordonnées des pixels projetés
     [X5,Y5,X6,Y6] = estimation(largVid,hautVid,matH2);
     
     %Correspondances entre les pixels de la zone et de M
+    %X7,Y7 : coordonées des pixels de la vidéo dont la projection se trouve
+    %dans M
+    %X8,Y8 : coordonées des points de M correspondant
     [X7,Y7,X8,Y8]=position(X5,Y5,X6,Y6,hautM,largM);
     
     %Projection des pixels de la zone dans M2
-    M2 = projection(video,N,X8,Y8,X7,Y7);
+    M2 = projection(video,M,X8,Y8,X7,Y7);
     
-
-
     %Filtrage
+    %M3 est un filtre qui vaut 0 dans la zone de la main, 1 ailleurs.
     M3 = filtrageMain(M2);
 
 
@@ -117,8 +131,6 @@ open(aviobj);
         video3G(Y7(x),X7(x))=vB(Y7(x),X7(x));
         end
     end
-
-
     video3=cat(3,video3R,video3G,video3B);
     writeVideo(aviobj, video3);
 end

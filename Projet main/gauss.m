@@ -1,6 +1,6 @@
 function [listeCoins,numFrames] = gauss(video)
     numFrames = get(video, 'NumberOfFrames');
-    
+
     %parametres et variables
     k = 0.05;
     sigmaG = 2;
