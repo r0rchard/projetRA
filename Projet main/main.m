@@ -1,12 +1,21 @@
-% %%
- aviobj=VideoWriter('video.avi','Uncompressed AVI');
- aviobj.FrameRate=24;open(aviobj)
- for i=1:10:n
+%%
+clear all
+close all
+feuille = 'feuille.mp4';
+feuilleReader = VideoReader(feuille);
+[historiqueAngles,n] = gauss(feuilleReader);
 
+
+%%
+dessinAnime = VideoReader('Chien.mp4');
+aviobj=VideoWriter('video.avi','Motion JPEG AVI');
+dessinAnime = VideoReader('Chien.mp4');
+aviobj.FrameRate=24;
+open(aviobj);
+ for i=1:n
     %On récupère chaque frame de la vidéo
-    video = read(obj,i);
+    video = read(feuilleReader,i);
     %On récupère les dimensions de cette frame (hauteur et largeur)
-    %[hautVid,largVid]=size(video);
     hautVid=size(video,1);
     largVid=size(video,2);
     
@@ -24,8 +33,8 @@
 
 %-------
     
-    image = imread('Clifford.jpg');
-
+    %%image = imread('Clifford.jpg');
+    image  = read(dessinAnime,i);
     %On récupère les dimensions de l'image
     hautImg=size(image,1);
     largImg=size(image,2);
@@ -51,19 +60,25 @@
 
     %image finale
     video2 = projection(image,video,X3,Y3,X4,Y4);
+    
  % détection main
     
     %Zone de la main
-    coinZHG = [coinVidHG(1)+round(3/4*(coinVidHD(1)-coinVidHG(1))),coinVidHD(2)+round(1/4*(coinVidHG(2)-coinVidHD(2)))];
-    coinZHD = coinVidHD;
-    coinZBG = [coinVidBG(1)+round(3/4*(coinVidBD(1)-coinVidBG(1))),coinVidBD(2)+round(1/4*(coinVidBG(2)-coinVidBD(2)))];
-    coinZBD = coinVidBD;
+    coinZHG2 = [coinVidHG(1)+round(3/4*(coinVidHD(1)-coinVidHG(1))),coinVidHD(2)+round(1/4*(coinVidHG(2)-coinVidHD(2)))];
+    coinZHD2 = coinVidHD;
+    coinZBG2 = [coinVidBG(1)+round(3/4*(coinVidBD(1)-coinVidBG(1))),coinVidBD(2)+round(1/4*(coinVidBG(2)-coinVidBD(2)))];
+    coinZBD2 = coinVidBD;
     
+    coinZHD = [coinVidHD(1)+round(1/6*(coinVidBD(1)-coinVidHD(1))),coinVidBD(2)+round(5/6*(coinVidHD(2)-coinVidBD(2)))];
+    coinZBD = [coinVidHD(1)+round(4/6*(coinVidBD(1)-coinVidHD(1))),coinVidBD(2)+round(2/6*(coinVidHD(2)-coinVidBD(2)))];
+    coinZHG = [coinZHG2(1)+round(1/6*(coinZBG2(1)-coinZHG2(1))),coinZBG2(2)+round(5/6*(coinZHG2(2)-coinZBG2(2)))];
+    coinZBG = [coinZHG2(1)+round(4/6*(coinZBG2(1)-coinZHG2(1))),coinZBG2(2)+round(2/6*(coinZHG2(2)-coinZBG2(2)))];
     %Création de N
-    largM=360;
-    hautM=1080;
+    largM=largImg/6;
+    hautM=hautImg/6;
     N = uint8(ones(hautM,largM,3));
     
+
     %Stockage des coordonnées des 4 coins de M
     coinMHG = [1,1];
     coinMHD = [largM,1];
@@ -81,10 +96,13 @@
     
     %Projection des pixels de la zone dans M2
     M2 = projection(video,N,X8,Y8,X7,Y7);
-   
+    
+
+
     %Filtrage
     M3 = filtrageMain(M2);
-    
+
+
     %Application sur la vidéo
     video3R=video2(:,:,1);
     video3G=video2(:,:,2);
@@ -100,11 +118,9 @@
         video3G(Y7(x),X7(x))=vB(Y7(x),X7(x));
         end
     end
-    
-    
-    %video3=cat(3,video3R,video3G,video3B);
-    video3 = projection(M2,video,X7,Y7,X8,Y8);
-    writeVideo(aviobj, video3);
 
- end
- close(aviobj);
+
+    video3=cat(3,video3R,video3G,video3B);
+    writeVideo(aviobj, video3);
+end
+close(aviobj);
