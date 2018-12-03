@@ -7,7 +7,7 @@ feuilleReader = VideoReader(feuille);
 %historiqueAngles stock les 4 coins de la feuille
 %on stock le nombre d'images de la vidéo
 [historiqueAngles,n] = gauss(feuilleReader); 
-%%
+
 %dessinAnime stock la vidéo à projeter sur l'image
 dessinAnime = VideoReader('Chien.mp4');
 
@@ -17,8 +17,7 @@ aviobj.FrameRate=24;
 open(aviobj);
 
 %On traite la vidéo image par image
-%for i=1:n
-i=20;
+for i=1:n
     video = read(feuilleReader,i); %On lit un frame de la vidéo
     
     %On récupère les dimensions de cette frame (hauteur et largeur)
@@ -134,5 +133,5 @@ i=20;
     end
     video3=cat(3,video3R,video3G,video3B);
     writeVideo(aviobj, video3);
-%end
+end
 close(aviobj);
