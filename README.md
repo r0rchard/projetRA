@@ -1,3 +1,4 @@
 # projet
 Projet de réalité augmenté ENSC 2018
-Parite homographie
+Partie homographie
+Christophe Delcombel
